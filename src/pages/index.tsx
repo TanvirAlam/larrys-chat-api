@@ -10,6 +10,7 @@ import { FiSend } from 'react-icons/fi';
 const Home: NextPage = () => {
   const [sendMessage, setSendMessage] = useState<string>("")
   const [recieveMessage, setRecieveMessage] = useState<string>("")
+  //try to collect in one array and set the message arrcoding one after another
   const [collectSendMessage, setCollectSendMessage] = useState<string[]>([])
   const [collectRecieveMessage, setCollectRecieveMessage] = useState<string[]>([])
 
@@ -25,6 +26,9 @@ const Home: NextPage = () => {
       setRecieveMessage(prevState => {
         return { prevState, message: response.data }
       });
+      return response.data;
+    })
+    .then((message) => {
       setCollectSendMessage(arr => [...arr, sendMessage ])
     })
     .catch((error) => {
