@@ -34,3 +34,7 @@ You can send a request to its `/message` endpoint with a JSON payload containing
 - `npm run build`
 - `npm run dev`
 - `npm start`
+
+<p align="center">
+    <img src="app.png">
+</p>
