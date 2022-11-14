@@ -1,21 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type NextPage } from "next";
 import Head from "next/head";
-
-import { trpc } from "../utils/trpc";
+import axios from "axios";
 
 import { FaUserAlt } from 'react-icons/fa';
 import { FaUserSecret } from 'react-icons/fa';
 import { FiSend } from 'react-icons/fi';
 
 const Home: NextPage = () => {
-  const [message, setMessge] = useState<string>("")
+  const [sendMessage, setSendMessage] = useState<string>("")
+  const [recieveMessage, setRecieveMessage] = useState<string>("")
+  const [collectSendMessage, setCollectSendMessage] = useState<string[]>([])
+  const [collectRecieveMessage, setCollectRecieveMessage] = useState<string[]>([])
 
-  const handleKeyDown = (event: { key: string; }) => {
-    if (event.key === 'Enter') {
-      console.log(message)
-    }
+  const config = {
+    method: 'POST',
+    url: '/api/larry',
+    data : JSON.stringify({"message": sendMessage})
+  };
+
+  const handleKeyDown = async () => {
+    await axios(config)
+    .then((response) => {
+      setRecieveMessage(prevState => {
+        return { prevState, message: response.data }
+      });
+      setCollectSendMessage(arr => [...arr, sendMessage ])
+    })
+    .catch((error) => {
+      console.log(error);
+    });    
   }
+
+  useEffect(() => {
+    if(recieveMessage) {
+      setCollectRecieveMessage(arr => [...arr, recieveMessage.message ])
+    }    
+  }, [recieveMessage]);
+
+  console.log(collectSendMessage, collectRecieveMessage);
 
   return (
     <>
@@ -30,16 +53,26 @@ const Home: NextPage = () => {
         </h1>
         <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
           <div className="flex flex-col flex-grow h-0 p-4 overflow-auto">
-            <MessageSender />
-            <MessageRecivier />
+            {
+              collectSendMessage && collectSendMessage.map((message, i) => {                
+                return (<MessageSender key={i} message={message} />)
+              })
+            }
+            {
+              collectRecieveMessage && collectRecieveMessage.map((message, i) => {
+                return (<MessageRecivier key={i} message={message} />)
+              })
+            }
           </div>
           <div className="bg-gray-300 p-4 flex justify-center items-center gap-2">
             <input 
               className="flex items-center h-10 w-full rounded px-3 text-sm" 
               type="text" 
-              onChange={event => setMessge(event.target.value)}
+              onChange={event => setSendMessage(event.target.value)}
               placeholder="Type your message…" />
-            <button>
+            <button
+              onClick={handleKeyDown}
+            >
               <FiSend />
             </button>
           </div>
@@ -51,7 +84,7 @@ const Home: NextPage = () => {
 
 export default Home;
 
-const MessageSender = () => {
+const MessageSender = ({message}: any) => {
   return (
     <div className="flex w-full mt-2 space-x-3 max-w-xs">
       <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex justify-center items-center">
@@ -59,7 +92,7 @@ const MessageSender = () => {
       </div>
       <div>
         <div className="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
-          <p className="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p className="text-sm">{message}</p>
         </div>
         <span className="text-xs text-gray-500 leading-none">2 min ago</span>
       </div>
@@ -67,12 +100,12 @@ const MessageSender = () => {
   )
 }
 
-const MessageRecivier = () => {
+const MessageRecivier = ({message}: any) => {
   return (
     <div className="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
       <div>
         <div className="bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg">
-          <p className="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.</p>
+          <p className="text-sm">{message}</p>
         </div>
         <span className="text-xs text-gray-500 leading-none">2 min ago</span>
       </div>
